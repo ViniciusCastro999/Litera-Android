@@ -1,12 +1,25 @@
+# Build outputs
 *.iml
-.gradle
-/local.properties
-.idea/
-.DS_Store
+.gradle/
 /build
 /captures
 .externalNativeBuild
 .cxx
+app/build/
+.kotlin/
+
+# Android Studio / IntelliJ
+.idea/
+
+# macOS
+.DS_Store
+
+# Local configuration (contains secrets — API keys, SDK path)
 local.properties
+
+# Firebase configuration (contains project credentials)
 app/google-services.json
-app/build
+
+# Release signing (keystores must never be committed)
+*.jks
+*.keystore
