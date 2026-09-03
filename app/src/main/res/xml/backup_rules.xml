@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Exclude the local database with the user's shelf from auto backup;
+         it is re-derived from the account + Google Books API. -->
+    <exclude domain="database" path="litera_database" />
+</full-backup-content>

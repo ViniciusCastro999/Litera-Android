@@ -1,0 +1,8 @@
+# Copy this file to "local.properties" (same folder), which Android Studio
+# also uses to store your sdk.dir automatically.
+#
+# Optional: a Google Books API key raises your request quota.
+# Get one free at https://console.cloud.google.com/apis/credentials
+# (enable "Books API" on the project first). The app works without it too,
+# just at a lower, shared quota.
+booksApiKey=
