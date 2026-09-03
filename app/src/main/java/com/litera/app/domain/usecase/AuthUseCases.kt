@@ -17,13 +17,14 @@ class SignInUseCase @Inject constructor(
     private val repository: AuthRepository
 ) {
     suspend operator fun invoke(email: String, password: String): Resource<AuthUser> {
-        if (email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        val trimmedEmail = email.trim()
+        if (trimmedEmail.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
             return Resource.Error("Digite um e-mail válido.")
         }
         if (password.isBlank()) {
             return Resource.Error("Digite sua senha.")
         }
-        return repository.signIn(email.trim(), password)
+        return repository.signIn(trimmedEmail, password)
     }
 }
 
@@ -31,16 +32,18 @@ class SignUpUseCase @Inject constructor(
     private val repository: AuthRepository
 ) {
     suspend operator fun invoke(displayName: String, email: String, password: String): Resource<AuthUser> {
-        if (displayName.isBlank()) {
+        val trimmedName = displayName.trim()
+        if (trimmedName.isBlank()) {
             return Resource.Error("Digite um nome de usuário.")
         }
-        if (email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        val trimmedEmail = email.trim()
+        if (trimmedEmail.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
             return Resource.Error("Digite um e-mail válido.")
         }
         if (password.length < 6) {
             return Resource.Error("A senha precisa ter pelo menos 6 caracteres.")
         }
-        return repository.signUp(displayName.trim(), email.trim(), password)
+        return repository.signUp(trimmedName, trimmedEmail, password)
     }
 }
 
@@ -48,10 +51,11 @@ class SendPasswordResetUseCase @Inject constructor(
     private val repository: AuthRepository
 ) {
     suspend operator fun invoke(email: String): Resource<Unit> {
-        if (email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        val trimmedEmail = email.trim()
+        if (trimmedEmail.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
             return Resource.Error("Digite um e-mail válido.")
         }
-        return repository.sendPasswordResetEmail(email.trim())
+        return repository.sendPasswordResetEmail(trimmedEmail)
     }
 }
 

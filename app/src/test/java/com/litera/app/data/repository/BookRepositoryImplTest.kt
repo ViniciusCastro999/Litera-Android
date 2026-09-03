@@ -9,7 +9,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -28,7 +28,7 @@ class BookRepositoryImplTest {
 
     @Before
     fun setUp() {
-        repository = BookRepositoryImpl(api, StandardTestDispatcher())
+        repository = BookRepositoryImpl(api, Dispatchers.Unconfined)
     }
 
     @Test

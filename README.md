@@ -90,4 +90,4 @@ Todo o visual foi conferido direto contra o arquivo Figma (não aproximado) via 
 - **Nunca testamos um build de release.** O `buildType release` tem `isMinifyEnabled = true` (R8/ProGuard); as regras em `proguard-rules.pro` não foram validadas contra um build real — isso pode quebrar Room/Hilt/Retrofit/serialization em release mesmo com o debug funcionando.
 - **Sem assinatura de release configurada** (keystore de upload), sem política de privacidade, sem preenchimento do formulário "Data safety" do Play Console — tudo isso é exigido para publicar.
 - **Ícone do launcher** é só o wordmark "Litera" simples, não um ícone adaptativo trabalhado.
-- **Sem testes automatizados** (unitários ou instrumentados) e sem Crashlytics/analytics configurado.
+- **Testes automatizados cobrem só a camada de lógica** (use cases, ViewModels, mappers e o `BookRepositoryImpl` — veja `app/src/test`). Não há testes instrumentados (UI/Compose) nem Crashlytics/analytics configurado.

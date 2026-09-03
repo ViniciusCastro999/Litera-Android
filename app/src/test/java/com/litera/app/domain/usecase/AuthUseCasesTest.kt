@@ -3,7 +3,6 @@ package com.litera.app.domain.usecase
 import com.litera.app.core.common.Resource
 import com.litera.app.domain.model.AuthUser
 import com.litera.app.domain.repository.AuthRepository
-import com.litera.app.testutil.AndroidPatternsRule
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -11,13 +10,20 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+/**
+ * Runs under Robolectric because SignInUseCase/SignUpUseCase/SendPasswordResetUseCase
+ * validate e-mails with android.util.Patterns.EMAIL_ADDRESS, which is a bare
+ * stub (null) on the plain JVM unit-test classpath — Robolectric shadows it
+ * with a real working regex, same as on-device.
+ */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class AuthUseCasesTest {
-
-    @get:Rule
-    val androidPatternsRule = AndroidPatternsRule()
 
     private val repository: AuthRepository = mockk()
 
