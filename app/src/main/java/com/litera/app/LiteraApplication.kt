@@ -5,6 +5,7 @@ import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
+import com.google.android.gms.ads.MobileAds
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.HiltAndroidApp
 
@@ -16,6 +17,8 @@ class LiteraApplication : Application(), ImageLoaderFactory {
         // Debug builds stay noisy with dev-only crashes (Firebase emulator
         // configs, stale test data); only release builds report to Crashlytics.
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
+        // Async, non-blocking — ad loads just wait until this completes.
+        MobileAds.initialize(this)
     }
 
     // Book covers (Explore, Home, Shelf, Book Detail) are all loaded through

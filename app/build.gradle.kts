@@ -34,6 +34,13 @@ val booksApiKey: String = localProperties.getProperty("booksApiKey", "")
 // See README.md "Login com Google" for how to get this value.
 val googleWebClientId: String = localProperties.getProperty("googleWebClientId", "")
 
+// Optional local.properties keys: admobAppId / admobBannerAdUnitId.
+// Default to Google's public AdMob test IDs (safe to ship, always fill with
+// clearly-labeled "Test Ad" creatives) so the banner works out of the box;
+// see README.md "Anúncios" for how to swap in real production IDs.
+val admobAppId: String = localProperties.getProperty("admobAppId", "ca-app-pub-3940256099942544~3347511713")
+val admobBannerAdUnitId: String = localProperties.getProperty("admobBannerAdUnitId", "ca-app-pub-3940256099942544/6300978111")
+
 android {
     namespace = "com.litera.app"
     compileSdk = 35
@@ -48,6 +55,11 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BOOKS_API_KEY", "\"$booksApiKey\"")
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
+        buildConfigField("String", "ADMOB_BANNER_AD_UNIT_ID", "\"$admobBannerAdUnitId\"")
+
+        // AndroidManifest.xml's <meta-data> can't read BuildConfig, so the
+        // AdMob App ID goes in as a manifest placeholder instead.
+        manifestPlaceholders["admobAppId"] = admobAppId
     }
 
     buildTypes {
@@ -128,6 +140,8 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.google.id)
+
+    implementation(libs.play.services.ads)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

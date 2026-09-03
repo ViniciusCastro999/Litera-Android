@@ -22,8 +22,14 @@ data class HomeUiState(
     val errorMessage: String? = null,
     val continueReading: List<ShelfBook> = emptyList(),
     val recommended: List<Book> = emptyList(),
-    val nationalHighlights: List<Book> = emptyList()
+    val nationalHighlights: List<Book> = emptyList(),
+    // Rolled once per Home visit (not per recomposition) so the hero
+    // banner doesn't flicker between the quote and an ad while scrolling.
+    val showAdInHero: Boolean = true
 )
+
+/** Ad most of the time, quote occasionally — see HeroBanner in HomeScreen.kt. */
+private const val AD_PROBABILITY = 0.8
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -33,7 +39,7 @@ class HomeViewModel @Inject constructor(
     private val getBooksByCategoryUseCase: GetBooksByCategoryUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(HomeUiState())
+    private val _uiState = MutableStateFlow(HomeUiState(showAdInHero = kotlin.random.Random.nextDouble() < AD_PROBABILITY))
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {

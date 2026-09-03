@@ -28,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.litera.app.domain.model.Book
 import com.litera.app.domain.model.ShelfBook
+import com.litera.app.presentation.components.BannerAdView
 import com.litera.app.presentation.components.BookCoverCard
 import com.litera.app.presentation.components.BookCoverImage
 import com.litera.app.presentation.components.ErrorState
@@ -43,6 +44,7 @@ fun HomeScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         HeroBanner(
+            showAd = uiState.showAdInHero,
             onReadClick = {
                 val target = uiState.continueReading.firstOrNull()?.volumeId
                     ?: uiState.recommended.firstOrNull()?.volumeId
@@ -81,7 +83,13 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HeroBanner(onReadClick: () -> Unit) {
+private fun HeroBanner(showAd: Boolean, onReadClick: () -> Unit) {
+    if (showAd) {
+        // Most visits: a banner ad instead of the quote — see HomeViewModel.AD_PROBABILITY.
+        BannerAdView(modifier = Modifier.background(MaterialTheme.colorScheme.secondary))
+        return
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()

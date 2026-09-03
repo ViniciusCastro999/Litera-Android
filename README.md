@@ -11,10 +11,12 @@ Design original **LiteraUX**, criado por **Milla Giulie** no Figma:
 - **MVVM + Clean Architecture**: `presentation` (Compose + ViewModels) → `domain` (models, use cases, interfaces de repositório) → `data` (Retrofit/Room/Firebase, implementações de repositório)
 - **Hilt** para injeção de dependência
 - **Retrofit + kotlinx.serialization** para a Google Books API e para a Wikipedia REST API (biografia de autor)
-- **Room** para tudo que é dado local: Estante, sessões de foco, metas de leitura, anotações e a Comunidade (posts/comentários/clubes)
-- **DataStore Preferences** para categorias favoritas, flags de onboarding/quiz e configurações do Modo foco
+- **Cloud Firestore** para os dados do usuário que seguem a conta entre aparelhos: Estante, Metas, Anotações, Modo foco/Ritmo de leitura e categorias favoritas — um documento/coleção por usuário, sob `users/{uid}/...`
+- **Room** só para a Comunidade (posts/comentários/clubes), que continua local ao aparelho (ver aviso mais abaixo)
+- **SharedPreferences** só para a flag "onboarding concluído" — é a única preferência que existe antes do login, então não dá pra guardar por conta
 - **Firebase Authentication** para login/cadastro (e-mail e senha, e login com Google via Credential Manager)
 - **Firebase Crashlytics + Analytics** para relatório de erros e eventos de uso (login, cadastro, navegação entre telas)
+- **Google AdMob** para o anúncio no banner da Home (ver seção de configuração)
 - **Coil** para carregar capas de livros, com cache em disco e memória configurado (`LiteraApplication`) — cada capa só é baixada uma vez
 
 ## Screenshots
@@ -54,7 +56,40 @@ Sem chave, o app funciona, só que com uma cota compartilhada mais baixa (pode r
 
 Sem o `googleWebClientId` configurado, o botão "Continuar com Google" simplesmente não aparece nas telas de Login/Criar conta — o app funciona normalmente só com e-mail/senha.
 
-### 4. Abrir no Android Studio
+### 4. Cloud Firestore (obrigatório para os dados persistirem)
+
+1. No [Firebase Console](https://console.firebase.google.com), vá em **Build → Firestore Database → Criar banco de dados**.
+2. Escolha uma localização (ex: `southamerica-east1`) — não dá pra mudar depois.
+3. Selecione **Iniciar no modo de produção**.
+4. Na aba **Regras**, cole e publique:
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /users/{userId}/{document=**} {
+         allow read, write: if request.auth != null && request.auth.uid == userId;
+       }
+     }
+   }
+   ```
+
+Sem isso, Estante/Metas/Anotações/Foco simplesmente não salvam — as telas continuam funcionando (não quebra), mas cada ação de salvar desiste sozinha depois de ~15s sem persistir nada (o app não trava esperando, mas o dado também não vai a lugar nenhum).
+
+### 5. Anúncios (opcional)
+
+O banner da Home mostra a citação só ocasionalmente (20% das vezes) — na maior parte do tempo, mostra um anúncio (Google AdMob) no lugar.
+
+Por padrão, o app já roda com os **IDs de teste públicos do Google** (documentados por eles, seguros para deixar no código) — então os anúncios aparecem como "Test Ad" sem precisar configurar nada. Para anúncios reais:
+
+1. Crie uma conta em https://admob.google.com e cadastre o app.
+2. Copie o **App ID** e o **ID do bloco de anúncios** (formato banner).
+3. Preencha em `local.properties`:
+   ```
+   admobAppId=SEU_APP_ID
+   admobBannerAdUnitId=SEU_AD_UNIT_ID
+   ```
+
+### 6. Abrir no Android Studio
 
 Abra a pasta `LiteraApp` no Android Studio (Koala ou mais recente) e deixe o Gradle sincronizar — o wrapper (`gradle-wrapper.jar`, Gradle 8.9) já está incluído no repositório.
 
@@ -64,7 +99,7 @@ Abra a pasta `LiteraApp` no Android Studio (Koala ou mais recente) e deixe o Gra
 - **Onboarding** — 4 telas com ilustrações, "Pular"
 - **Login, Criar conta e Esqueci minha senha** — Firebase Auth, campos em pill preenchido, toggle mostrar/ocultar senha
 - **Quiz de preferências** — categorias favoritas, mínimo 3
-- **Home** — banner com citação, "Continuar sua última leitura", destaques nacionais e recomendados (baseado nas categorias escolhidas)
+- **Home** — banner com citação (ocasional) ou anúncio (a maior parte do tempo), "Continuar sua última leitura", destaques nacionais e recomendados (baseado nas categorias escolhidas)
 - **Explorar** — busca por título/autor, sugestões para você, grade de categorias, resultados de busca
 - **Detalhes do livro** — capa, sinopse, avaliação, favoritar, começar/continuar leitura, atalho para Modo foco, atalho para Anotações, autor clicável (leva para "Sobre o autor"), "mais obras do autor"
 - **Minha Estante** — Continue lendo (com progresso e atualização de página), Favoritos, Lidos
@@ -95,8 +130,8 @@ Todo o visual foi conferido direto contra o arquivo Figma (não aproximado) via 
 
 ## Limitações conhecidas / o que falta para produção
 
-- **Dados do usuário ficam só no aparelho.** Fora a conta de login (Firebase Auth), tudo — Estante, Metas, Anotações, histórico de Foco, Comunidade — é local (Room/DataStore). Desinstalar o app ou trocar de aparelho perde tudo.
-- **Sem backend social real** (ver aviso da Comunidade acima).
+- **Comunidade continua só no aparelho** (ver aviso acima) — sem backend social real.
+- **Anúncios em modo de teste por padrão.** Sem uma conta AdMob própria configurada (ver seção 5), o app mostra os anúncios de teste públicos do Google — não gera receita real.
 - **Nunca testamos um build de release.** O `buildType release` tem `isMinifyEnabled = true` (R8/ProGuard); as regras em `proguard-rules.pro` não foram validadas contra um build real — isso pode quebrar Room/Hilt/Retrofit/serialization em release mesmo com o debug funcionando.
 - **Sem assinatura de release configurada** (keystore de upload), sem política de privacidade, sem preenchimento do formulário "Data safety" do Play Console — tudo isso é exigido para publicar.
 - **Ícone do launcher** é só o wordmark "Litera" simples, não um ícone adaptativo trabalhado.
