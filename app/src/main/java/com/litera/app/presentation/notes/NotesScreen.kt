@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.litera.app.core.common.FeatureFlags
 import com.litera.app.core.theme.AlertError
 import com.litera.app.core.theme.Bunker200
 import com.litera.app.core.theme.Bunker50
@@ -126,7 +127,7 @@ fun NotesScreen(
                 ) {
                     OutlinedButton(
                         onClick = {},
-                        enabled = false,
+                        enabled = FeatureFlags.NOTES_OCR_ENABLED,
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(
@@ -139,7 +140,7 @@ fun NotesScreen(
                     }
                     OutlinedButton(
                         onClick = {},
-                        enabled = false,
+                        enabled = FeatureFlags.NOTES_OCR_ENABLED,
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("Capturar página")

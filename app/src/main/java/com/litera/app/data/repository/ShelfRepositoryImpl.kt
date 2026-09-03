@@ -63,9 +63,9 @@ class ShelfRepositoryImpl @Inject constructor(
         val existing = docRef.get().await().toObject(ShelfBookDto::class.java)
         val now = System.currentTimeMillis()
         if (existing != null) {
-            docRef.set(existing.copy(isFavorite = !existing.isFavorite, updatedAt = now)).await()
+            docRef.set(existing.copy(favorite = !existing.favorite, updatedAt = now)).await()
         } else {
-            docRef.set(book.toNewDto(now).copy(isFavorite = true)).await()
+            docRef.set(book.toNewDto(now).copy(favorite = true)).await()
         }
     }
 
@@ -77,7 +77,7 @@ class ShelfRepositoryImpl @Inject constructor(
         if (existing != null) {
             docRef.set(
                 existing.copy(
-                    isRead = false,
+                    read = false,
                     currentPage = if (existing.currentPage <= 0) 1 else existing.currentPage,
                     totalPages = if (totalPages > 0) totalPages else existing.totalPages,
                     updatedAt = now
@@ -98,7 +98,7 @@ class ShelfRepositoryImpl @Inject constructor(
             existing.copy(
                 currentPage = currentPage.coerceAtLeast(0),
                 totalPages = totalPages.coerceAtLeast(existing.totalPages),
-                isRead = existing.isRead || isNowRead,
+                read = existing.read || isNowRead,
                 updatedAt = now
             )
         ).await()
@@ -108,7 +108,7 @@ class ShelfRepositoryImpl @Inject constructor(
         val uid = auth.currentUser?.uid ?: return@safeWrite
         val docRef = shelfCollection(uid).document(volumeId)
         val existing = docRef.get().await().toObject(ShelfBookDto::class.java) ?: return@safeWrite
-        docRef.set(existing.copy(isRead = true, updatedAt = System.currentTimeMillis())).await()
+        docRef.set(existing.copy(read = true, updatedAt = System.currentTimeMillis())).await()
     }
 
     override suspend fun removeFromShelf(volumeId: String) = safeWrite {
@@ -117,13 +117,22 @@ class ShelfRepositoryImpl @Inject constructor(
     }
 }
 
-/** Firestore requires a no-arg constructor for automatic deserialization, hence every field defaults. */
+/**
+ * Firestore requires a no-arg constructor for automatic deserialization,
+ * hence every field defaults. Booleans are named without an "is" prefix on
+ * purpose: Kotlin compiles `val isFavorite: Boolean` to a getter literally
+ * named `isFavorite()`, and Firestore's bean-property mapper strips "is" to
+ * derive the serialized field name ("favorite") but then looks for a field/
+ * setter matching that SAME derived name when deserializing — which doesn't
+ * exist (the real field is `isFavorite`), so it silently drops the value.
+ * Plain `favorite`/`read` sidesteps this mismatch entirely.
+ */
 data class ShelfBookDto(
     val title: String = "",
     val authorsLabel: String = "",
     val thumbnailUrl: String? = null,
-    val isFavorite: Boolean = false,
-    val isRead: Boolean = false,
+    val favorite: Boolean = false,
+    val read: Boolean = false,
     val currentPage: Int = 0,
     val totalPages: Int = 0,
     val addedAt: Long = 0L,
@@ -135,8 +144,8 @@ private fun ShelfBookDto.toDomain(volumeId: String) = ShelfBook(
     title = title,
     authorsLabel = authorsLabel,
     thumbnailUrl = thumbnailUrl,
-    isFavorite = isFavorite,
-    isRead = isRead,
+    isFavorite = favorite,
+    isRead = read,
     currentPage = currentPage,
     totalPages = totalPages,
     addedAt = addedAt,
@@ -147,8 +156,8 @@ private fun Book.toNewDto(now: Long) = ShelfBookDto(
     title = title,
     authorsLabel = authorsLabel,
     thumbnailUrl = thumbnailUrl,
-    isFavorite = false,
-    isRead = false,
+    favorite = false,
+    read = false,
     currentPage = 0,
     totalPages = pageCount,
     addedAt = now,

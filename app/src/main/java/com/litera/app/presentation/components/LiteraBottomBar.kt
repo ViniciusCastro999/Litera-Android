@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
+import com.litera.app.core.common.FeatureFlags
 import com.litera.app.core.navigation.Screen
 import com.litera.app.presentation.components.icons.PhosphorIcons
 
@@ -18,13 +19,15 @@ private data class BottomBarItem(
     val icon: ImageVector
 )
 
-private val bottomBarItems = listOf(
-    BottomBarItem(Screen.Home, "Home", PhosphorIcons.House),
-    BottomBarItem(Screen.Explore, "Explorar", PhosphorIcons.MagnifyingGlass),
-    BottomBarItem(Screen.Shelf, "Estante", PhosphorIcons.Books),
-    BottomBarItem(Screen.Community, "Comunidade", PhosphorIcons.Community),
-    BottomBarItem(Screen.Profile, "Perfil", PhosphorIcons.UserCircle)
-)
+private val bottomBarItems = buildList {
+    add(BottomBarItem(Screen.Home, "Home", PhosphorIcons.House))
+    add(BottomBarItem(Screen.Explore, "Explorar", PhosphorIcons.MagnifyingGlass))
+    add(BottomBarItem(Screen.Shelf, "Estante", PhosphorIcons.Books))
+    if (FeatureFlags.COMMUNITY_ENABLED) {
+        add(BottomBarItem(Screen.Community, "Comunidade", PhosphorIcons.Community))
+    }
+    add(BottomBarItem(Screen.Profile, "Perfil", PhosphorIcons.UserCircle))
+}
 
 @Composable
 fun LiteraBottomBar(

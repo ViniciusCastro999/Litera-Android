@@ -48,6 +48,7 @@ fun HomeScreen(
             onReadClick = {
                 val target = uiState.continueReading.firstOrNull()?.volumeId
                     ?: uiState.recommended.firstOrNull()?.volumeId
+                    ?: uiState.nationalHighlights.firstOrNull()?.volumeId
                 target?.let(onBookClick)
             }
         )

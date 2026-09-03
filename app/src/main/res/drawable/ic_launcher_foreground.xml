@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Real "Litera" wordmark logo exported from the LiteraUX Figma Style Guide
-     (drawable-nodpi/litera_logo.png), inset to sit inside the adaptive icon's
-     safe zone (the inner ~66dp of the 108dp canvas). -->
+<!-- Real "Litera" wordmark logo exported from the LiteraUX Figma Style Guide,
+     with the baked-in circle/background matte removed (litera_logo.png was
+     authored as a standalone square badge, not an adaptive-icon foreground —
+     its own opaque backdrop showed through as a ring around the system's
+     circular icon mask on launchers). litera_logo_mark.png keeps just the
+     wordmark strokes on a transparent background, same inset as before so
+     the mark itself sits at the same size/position within the safe zone. -->
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
-    android:drawable="@drawable/litera_logo"
+    android:drawable="@drawable/litera_logo_mark"
     android:insetLeft="18dp"
     android:insetTop="18dp"
     android:insetRight="18dp"
