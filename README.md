@@ -1,28 +1,20 @@
-# Litera — App Android nativo (Kotlin, MVVM + Clean Architecture)
+# Litera
 
-App de leitura gerado a partir do design **LiteraUX** (PDF exportado do Figma). Este README cobre o que foi implementado, como configurar o projeto e o que falta para replicar 100% do design original.
+App Android nativo de leitura — Kotlin + Jetpack Compose, MVVM + Clean Architecture.
+
+Design original **LiteraUX**, criado por **Milla Giulie** no Figma:
+📎 https://www.figma.com/design/HjDOMSiT5S17DZKR77b8SY/LiteraUX.fig
 
 ## Stack
 
 - **Kotlin** + **Jetpack Compose** (Material 3)
 - **MVVM + Clean Architecture**: `presentation` (Compose + ViewModels) → `domain` (models, use cases, interfaces de repositório) → `data` (Retrofit/Room/Firebase, implementações de repositório)
 - **Hilt** para injeção de dependência
-- **Retrofit + kotlinx.serialization** para a API de livros
-- **Room** para a "Estante" (favoritos, lidos, progresso de leitura) — funciona offline
-- **DataStore Preferences** para as categorias favoritas e flags de onboarding/quiz
+- **Retrofit + kotlinx.serialization** para a Google Books API e para a Wikipedia REST API (biografia de autor)
+- **Room** para tudo que é dado local: Estante, sessões de foco, metas de leitura, anotações e a Comunidade (posts/comentários/clubes)
+- **DataStore Preferences** para categorias favoritas, flags de onboarding/quiz e configurações do Modo foco
 - **Firebase Authentication** para login/cadastro (e-mail e senha)
-- **Coil** para carregar capas de livros
-
-## API de livros escolhida: Google Books API
-
-Foi usada a **Google Books API** (`https://www.googleapis.com/books/v1/volumes`) porque:
-
-- É gratuita e pública (não exige backend próprio nem aprovação de editora).
-- Tem cobertura enorme de livros em português, incluindo autores brasileiros (os mesmos livros usados no mock — "O Vilarejo", "Porém Bruxa", "A Hora da Estrela" etc. — aparecem nela).
-- Suporta o parâmetro `langRestrict=pt` (restringe a idioma português — a API não distingui pt-BR de pt-PT, então o app também envia `country=BR` para enviesar a disponibilidade/resultados para o Brasil) e busca por categoria (`subject:`) e autor (`inauthor:`).
-- Não exige chave de API para volume baixo de requisições — mas você pode (e deveria, para produção) gerar uma chave gratuita e colocar em `local.properties` (veja abaixo), o que aumenta bastante a cota.
-
-Se no futuro quiser uma base 100% focada em literatura brasileira, dá para trocar `GoogleBooksApiService`/`BookRepositoryImpl` por outra fonte (ex. Open Library, ou uma API de alguma distribuidora/editora brasileira) sem tocar no resto do app — a interface `BookRepository` no domínio já isola essa dependência.
+- **Coil** para carregar capas de livros, com cache em disco e memória configurado (`LiteraApplication`) — cada capa só é baixada uma vez
 
 ## Configuração antes de rodar
 
@@ -32,7 +24,7 @@ Se no futuro quiser uma base 100% focada em literatura brasileira, dá para troc
 2. Adicione um app Android com o pacote `com.litera.app`.
 3. Baixe o `google-services.json` e coloque em `app/google-services.json`.
 4. No console do Firebase, em **Authentication → Sign-in method**, ative o provedor **E-mail/senha**.
-5. Pronto — o projeto detecta o `google-services.json` automaticamente (o plugin do Google Services só é aplicado se o arquivo existir, então o projeto builda normalmente mesmo antes desse passo, mas login/cadastro só funcionam depois).
+5. Sem esse arquivo o projeto builda normalmente (o plugin do Google Services só é aplicado se ele existir), mas o app quebra ao abrir — a checagem de sessão de login roda logo na tela inicial.
 
 ### 2. Chave da Google Books API (opcional, recomendado)
 
@@ -40,33 +32,52 @@ Se no futuro quiser uma base 100% focada em literatura brasileira, dá para troc
 2. Gere uma chave gratuita em https://console.cloud.google.com/apis/credentials (ative a "Books API" no projeto antes).
 3. Preencha `booksApiKey=SUA_CHAVE` em `local.properties`.
 
-Sem chave, o app funciona, só que com uma cota compartilhada mais baixa.
+Sem chave, o app funciona, só que com uma cota compartilhada mais baixa (pode retornar erro 503 em uso intenso).
 
 ### 3. Abrir no Android Studio
 
-Abra a pasta `LiteraApp` no Android Studio (Koala ou mais recente). Se o Gradle reclamar do wrapper (o `gradle-wrapper.jar` binário não foi incluído neste pacote de código para manter o download leve), deixe o Android Studio usar o Gradle 8.9 automaticamente, ou rode `gradle wrapper --gradle-version 8.9` uma vez com um Gradle instalado localmente.
+Abra a pasta `LiteraApp` no Android Studio (Koala ou mais recente) e deixe o Gradle sincronizar — o wrapper (`gradle-wrapper.jar`, Gradle 8.9) já está incluído no repositório.
 
-## O que foi implementado (MVP)
+## O que foi implementado
 
-- Onboarding (4 telas, com "Pular")
-- Login, Criar conta e Esqueci minha senha (Firebase Auth)
-- Quiz de preferências (categorias favoritas, mínimo 3)
-- Home: banner com citação, "Continuar sua última leitura", destaques nacionais e recomendados (baseado nas categorias escolhidas)
-- Explorar: busca por título/autor + grade de categorias + livros por categoria
-- Detalhes do livro: capa, sinopse, avaliação, favoritar, começar/continuar leitura, "mais obras do autor"
-- Minha Estante: Continue lendo (com progresso e atualização de página), Favoritos, Lidos
-- Perfil: dados do usuário, estatísticas simples (lidos/lendo/favoritos), categorias favoritas, sair da conta
+### Fluxo principal
+- **Onboarding** — 4 telas com ilustrações e cópia exatas do Figma, "Pular"
+- **Login, Criar conta e Esqueci minha senha** — Firebase Auth, campos em pill preenchido, toggle mostrar/ocultar senha
+- **Quiz de preferências** — categorias favoritas, mínimo 3
+- **Home** — banner com citação, "Continuar sua última leitura", destaques nacionais e recomendados (baseado nas categorias escolhidas)
+- **Explorar** — busca por título/autor, sugestões para você, grade de categorias, resultados de busca
+- **Detalhes do livro** — capa, sinopse, avaliação, favoritar, começar/continuar leitura, atalho para Modo foco, atalho para Anotações, autor clicável (leva para "Sobre o autor"), "mais obras do autor"
+- **Minha Estante** — Continue lendo (com progresso e atualização de página), Favoritos, Lidos
+- **Perfil** — cabeçalho com avatar/stats (lidos, lendo, favoritos), card de meta de leitura em destaque, categorias favoritas, atalhos, sair da conta
 
-## O que ainda não foi implementado (ficou fora do MVP combinado)
+### Ferramentas de leitura (novo, 100% local — Room/DataStore)
+- **Ritmo de leitura** — cronômetro de 1 minuto → informa página inicial/final → calcula páginas/hora e estimativa de dias para terminar o livro
+- **Modo foco** (Pomodoro) — tela de intro, sessão com cronômetro regressivo e pausa, configurações (duração, notificações, estatísticas de tempo total/XP)
+- **Metas de leitura** — criar/editar metas (páginas por semana, livros por mês, livros nacionais) com acompanhamento de progresso
+- **Anotações** — texto livre + tags por livro (os botões "Escanear texto"/"Capturar página" aparecem desabilitados — OCR ficou fora de escopo)
+- **Progresso de leitura** — painel com % de páginas lidas, conquistas calculadas a partir de dados reais (Estante/Foco/Metas) e histórico de sessões de foco
+- **Sobre o autor** — biografia buscada na Wikipedia (com fallback gracioso quando não encontra) + grade de outras obras
 
-O PDF tem 42 telas — várias delas dependem de um **backend social** que não existe (comunidade, clubes literários, posts, comentários, amigos) ou são complementares (calibração de ritmo de leitura, modo foco com cronômetro e anotações, metas de leitura com XP/conquistas). Nenhuma dessas foi construída agora para manter o escopo do MVP viável, mas a arquitetura (Clean Architecture com camadas bem separadas) foi pensada para isso ser incremental — dá pra adicionar cada uma como um novo "feature module" em `presentation/` sem mexer no resto.
+### Comunidade (novo — local ao dispositivo)
+- Feed "Amigos" (publicar, curtir, comentar, compartilhar), "Clubes literários" (entrar/sair), compositor de post com tags
 
-## Sobre cores, fontes, ícones e ilustrações
+> ⚠️ **Importante**: a Comunidade roda inteiramente em Room, no aparelho — não existe backend/Firestore por trás. Os posts de exemplo são semeados na primeira instalação, curtidas/comentários feitos pelo usuário ficam só naquele aparelho, e não há sincronização real entre pessoas diferentes. Para virar uma rede social de verdade, precisa entrar um backend (Firestore ou similar).
 
-Depois da primeira versão (baseada só no PDF exportado), ganhamos acesso de leitura ao arquivo Figma original (`LiteraUX.fig` — Style Guide) e o app foi atualizado para usar os tokens e assets **reais**, não mais aproximações:
+## Design system
 
-- **Cores**: paleta exata "Daisy Bush" (roxo primário, escala 50→950, `#F4F1FF`→`#2C0174`) e "Bunker" (neutro, escala 50→950) mais as cores de alerta (Sucesso `#068932`, Erro `#9F0808`, Aviso `#CDA823`) — tudo em `core/theme/Color.kt`.
-- **Tipografia**: fonte real do design, "Raleway", carregada via Downloadable Fonts do Compose (`core/theme/Type.kt` + `res/values/font_certs.xml`) — baixada em runtime pelo Google Play Services no aparelho do usuário, sem precisar empacotar arquivos de fonte no APK. Escala de tamanhos 32/24/20 (títulos) e 18/16/14/8 (corpo/labels), igual ao Figma.
-- **Botões e chips**: `LiteraButtons.kt` e `CategoryChip.kt` foram redesenhados para bater com os componentes reais "Botão" (cantos 100dp, padding 24×18, cores `#5908CF`/`#F4F1FF`) e "Categoria de livro" (retângulo 16dp, `#A178FF`) do Style Guide.
-- **Logo e ilustrações**: o wordmark "Litera" e as 4 ilustrações do onboarding foram exportados diretamente do Figma e estão em `res/drawable-nodpi/` (`litera_logo.png`, `onboarding_illustration_1..4.png`) — usados no ícone do app (`res/drawable/ic_launcher_foreground.xml` + mipmaps gerados para API 24/25) e no `OnboardingScreen.kt`.
-- **Ícones**: o design usa a biblioteca **Phosphor Icons**. A distribuição Compose desse pacote (`br.com.devsrsouza.compose.icons:phosphor`) não está publicada no Maven Central (só `simple-icons` e `tabler-icons` estão) e o build no JitPack está quebrado no momento — então, para não arriscar o projeto inteiro não sincronizar, os ~10 ícones realmente usados no app (casa, lupa, livros, perfil, coração, setas, estrela, etc.) foram desenhados à mão como `ImageVector` em `presentation/components/icons/PhosphorIcons.kt`, seguindo o estilo "regular" (linha, 24×24, cantos arredondados) do Phosphor. Se um dia quiser trocar pela biblioteca oficial, é só apagar esse arquivo e importar `Phosphor.NomeDoIcone` no lugar de `PhosphorIcons.NomeDoIcone` — os nomes foram escolhidos para bater 1:1.
+Todo o visual foi conferido direto contra o arquivo Figma (não aproximado) via MCP do Figma:
+
+- **Cores**: paleta exata "Daisy Bush" (roxo primário, escala 50→950) e "Bunker" (neutro, escala 50→950), mais as cores de alerta (Sucesso `#068932`, Erro `#9F0808`) — `core/theme/Color.kt`.
+- **Tipografia**: "Raleway", carregada via Downloadable Fonts do Compose (`core/theme/Type.kt` + `res/values/font_certs.xml`), baixada em runtime pelo Google Play Services no aparelho do usuário — sem empacotar arquivos de fonte no APK.
+- **Ícones**: os ícones do Phosphor Icons usados no app (~25) foram exportados diretamente do Figma como paths SVG e convertidos em `ImageVector` via `PathParser` em `presentation/components/icons/PhosphorIcons.kt` — não são aproximações desenhadas à mão, são os glifos reais do design.
+- **Ilustrações do onboarding**: exportadas em alta resolução do Figma, recortadas para a bounding box real (sem a margem transparente sobrando) e ficam em `res/drawable-nodpi/onboarding_illustration_1..4.png`.
+- **Componentes**: `LiteraButtons.kt`, `LiteraTextField.kt` (campo em pill preenchido) e `CategoryChip.kt` seguem os componentes reais "Botão", "Campo" e "Categoria de livro" do Style Guide.
+
+## Limitações conhecidas / o que falta para produção
+
+- **Dados do usuário ficam só no aparelho.** Fora a conta de login (Firebase Auth), tudo — Estante, Metas, Anotações, histórico de Foco, Comunidade — é local (Room/DataStore). Desinstalar o app ou trocar de aparelho perde tudo.
+- **Sem backend social real** (ver aviso da Comunidade acima).
+- **Nunca testamos um build de release.** O `buildType release` tem `isMinifyEnabled = true` (R8/ProGuard); as regras em `proguard-rules.pro` não foram validadas contra um build real — isso pode quebrar Room/Hilt/Retrofit/serialization em release mesmo com o debug funcionando.
+- **Sem assinatura de release configurada** (keystore de upload), sem política de privacidade, sem preenchimento do formulário "Data safety" do Play Console — tudo isso é exigido para publicar.
+- **Ícone do launcher** é só o wordmark "Litera" simples, não um ícone adaptativo trabalhado.
+- **Sem testes automatizados** (unitários ou instrumentados) e sem Crashlytics/analytics configurado.
