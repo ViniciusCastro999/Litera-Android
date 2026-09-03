@@ -1,5 +1,6 @@
 package com.litera.app.data.repository
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.litera.app.core.common.Resource
 import com.litera.app.data.remote.GoogleBooksApiService
 import com.litera.app.data.remote.dto.VolumeDto
@@ -9,6 +10,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
@@ -24,11 +26,12 @@ import java.io.IOException
 class BookRepositoryImplTest {
 
     private val api: GoogleBooksApiService = mockk()
+    private val crashlytics: FirebaseCrashlytics = mockk(relaxed = true)
     private lateinit var repository: BookRepositoryImpl
 
     @Before
     fun setUp() {
-        repository = BookRepositoryImpl(api, Dispatchers.Unconfined)
+        repository = BookRepositoryImpl(api, Dispatchers.Unconfined, crashlytics)
     }
 
     @Test
@@ -53,6 +56,7 @@ class BookRepositoryImplTest {
 
         assertTrue(result is Resource.Error)
         assertEquals("Sem conexão com a internet. Verifique sua rede e tente novamente.", (result as Resource.Error).message)
+        verify(exactly = 0) { crashlytics.recordException(any()) }
     }
 
     @Test
@@ -68,6 +72,7 @@ class BookRepositoryImplTest {
 
         assertTrue(result is Resource.Error)
         assertTrue((result as Resource.Error).message.contains("404"))
+        verify(exactly = 0) { crashlytics.recordException(any()) }
     }
 
     @Test
@@ -80,6 +85,7 @@ class BookRepositoryImplTest {
 
         assertTrue(result is Resource.Error)
         assertEquals("boom", (result as Resource.Error).message)
+        verify(exactly = 1) { crashlytics.recordException(any()) }
     }
 
     @Test

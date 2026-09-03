@@ -1,5 +1,6 @@
 package com.litera.app.data.repository
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.litera.app.BuildConfig
 import com.litera.app.core.common.Constants
 import com.litera.app.core.common.Resource
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 class BookRepositoryImpl @Inject constructor(
     private val api: GoogleBooksApiService,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val crashlytics: FirebaseCrashlytics
 ) : BookRepository {
 
     // Google Books works without a key at a shared/lower quota; an empty
@@ -78,6 +80,10 @@ class BookRepositoryImpl @Inject constructor(
         } catch (e: retrofit2.HttpException) {
             Resource.Error("Não foi possível buscar os livros agora (erro ${e.code()}).", e)
         } catch (e: Exception) {
+            // IOException/HttpException are expected day-to-day (offline, API
+            // hiccups); anything else here is unexpected, so it's worth a
+            // non-fatal report instead of silently showing a generic error.
+            crashlytics.recordException(e)
             Resource.Error(e.message ?: "Ocorreu um erro inesperado.", e)
         }
     }

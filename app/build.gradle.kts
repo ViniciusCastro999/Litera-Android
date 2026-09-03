@@ -15,6 +15,8 @@ plugins {
 val googleServicesFile = file("google-services.json")
 if (googleServicesFile.exists()) {
     apply(plugin = "com.google.gms.google-services")
+    // Crashlytics/Analytics need a real Firebase project (same file) to report to.
+    apply(plugin = "com.google.firebase.crashlytics")
 }
 
 // Optional local.properties key: booksApiKey=YOUR_GOOGLE_BOOKS_API_KEY
@@ -113,6 +115,8 @@ dependencies {
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.crashlytics.ktx)
+    implementation(libs.firebase.analytics.ktx)
 
     implementation(libs.androidx.datastore.preferences)
 

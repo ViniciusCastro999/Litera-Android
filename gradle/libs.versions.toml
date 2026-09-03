@@ -18,10 +18,11 @@ room = "2.6.1"
 coilCompose = "2.7.0"
 firebaseBom = "33.5.1"
 googleServicesPlugin = "4.4.2"
+firebaseCrashlyticsPlugin = "3.0.2"
 datastore = "1.1.1"
 junit = "4.13.2"
 androidxJunit = "1.2.1"
-espresso = "3.6.1"
+espresso = "3.7.0"
 mockk = "1.13.13"
 turbine = "1.1.0"
 robolectric = "4.14.1"
@@ -64,6 +65,8 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx" }
+firebase-crashlytics-ktx = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
+firebase-analytics-ktx = { group = "com.google.firebase", name = "firebase-analytics-ktx" }
 
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
@@ -83,3 +86,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServicesPlugin" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsPlugin" }

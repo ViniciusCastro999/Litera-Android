@@ -1,6 +1,7 @@
 package com.litera.app.presentation.auth
 
 import app.cash.turbine.test
+import com.litera.app.core.common.AnalyticsLogger
 import com.litera.app.core.common.Resource
 import com.litera.app.domain.model.AuthUser
 import com.litera.app.domain.usecase.ObserveCurrentUserUseCase
@@ -11,6 +12,7 @@ import com.litera.app.testutil.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -28,6 +30,7 @@ class AuthViewModelTest {
     private val signInUseCase: SignInUseCase = mockk()
     private val signUpUseCase: SignUpUseCase = mockk()
     private val sendPasswordResetUseCase: SendPasswordResetUseCase = mockk()
+    private val analyticsLogger: AnalyticsLogger = mockk(relaxed = true)
 
     private lateinit var viewModel: AuthViewModel
 
@@ -36,7 +39,7 @@ class AuthViewModelTest {
     @Before
     fun setUp() {
         every { observeCurrentUser() } returns MutableStateFlow(null)
-        viewModel = AuthViewModel(observeCurrentUser, signInUseCase, signUpUseCase, sendPasswordResetUseCase)
+        viewModel = AuthViewModel(observeCurrentUser, signInUseCase, signUpUseCase, sendPasswordResetUseCase, analyticsLogger)
     }
 
     @Test
@@ -51,10 +54,11 @@ class AuthViewModelTest {
             assertEquals(AuthActionState.Loading, awaitItem())
             assertEquals(AuthActionState.Success(user), awaitItem())
         }
+        verify(exactly = 1) { analyticsLogger.logLogin() }
     }
 
     @Test
-    fun `login failure updates authState with the error message`() = runTest {
+    fun `login failure updates authState with the error message and does not log an analytics event`() = runTest {
         coEvery { signInUseCase(any(), any()) } returns Resource.Error("Credenciais inválidas.")
 
         viewModel.authState.test {
@@ -67,6 +71,7 @@ class AuthViewModelTest {
             assertTrue(error is AuthActionState.Error)
             assertEquals("Credenciais inválidas.", (error as AuthActionState.Error).message)
         }
+        verify(exactly = 0) { analyticsLogger.logLogin() }
     }
 
     @Test
@@ -81,6 +86,7 @@ class AuthViewModelTest {
             awaitItem() // Loading
             assertEquals(AuthActionState.Success(user), awaitItem())
         }
+        verify(exactly = 1) { analyticsLogger.logSignUp() }
     }
 
     @Test

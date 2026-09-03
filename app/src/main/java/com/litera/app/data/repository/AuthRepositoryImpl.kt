@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.litera.app.core.common.Resource
 import com.litera.app.data.remote.awaitResult
 import com.litera.app.domain.model.AuthUser
@@ -17,7 +18,8 @@ import javax.inject.Singleton
 
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val crashlytics: FirebaseCrashlytics
 ) : AuthRepository {
 
     private val _currentUser = MutableStateFlow(firebaseAuth.currentUser?.toDomain())
@@ -25,7 +27,11 @@ class AuthRepositoryImpl @Inject constructor(
 
     init {
         firebaseAuth.addAuthStateListener { auth ->
-            _currentUser.value = auth.currentUser?.toDomain()
+            val user = auth.currentUser?.toDomain()
+            _currentUser.value = user
+            // Tags crash reports with the signed-in user so a report can be
+            // traced back without ever sending e-mail/PII to Crashlytics.
+            crashlytics.setUserId(user?.uid.orEmpty())
         }
     }
 

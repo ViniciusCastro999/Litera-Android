@@ -3,9 +3,11 @@ package com.litera.app.core.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -17,6 +19,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.litera.app.core.common.AnalyticsLogger
 import com.litera.app.presentation.AppViewModel
 import com.litera.app.presentation.StartDestination
 import com.litera.app.presentation.auth.ForgotPasswordScreen
@@ -74,6 +78,15 @@ fun LiteraNavGraph(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val showBottomBar = currentRoute in Screen.bottomBarRoutes
+
+    // Centralized here (instead of one call per screen) so every
+    // destination — including the ~40 feature screens — gets analytics
+    // screen_view coverage for free as the back stack changes.
+    val context = LocalContext.current
+    val analyticsLogger = remember(context) { AnalyticsLogger(FirebaseAnalytics.getInstance(context)) }
+    LaunchedEffect(currentRoute) {
+        currentRoute?.let { analyticsLogger.logScreenView(it) }
+    }
 
     Scaffold(
         bottomBar = {
