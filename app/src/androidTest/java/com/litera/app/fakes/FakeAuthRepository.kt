@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 class FakeAuthRepository(
     private var signInResult: Resource<AuthUser> = Resource.Error("not configured"),
     private var signUpResult: Resource<AuthUser> = Resource.Error("not configured"),
+    private var googleSignInResult: Resource<AuthUser> = Resource.Error("not configured"),
     private var resetResult: Resource<Unit> = Resource.Error("not configured")
 ) : AuthRepository {
 
@@ -31,6 +32,8 @@ class FakeAuthRepository(
     override suspend fun signIn(email: String, password: String): Resource<AuthUser> = signInResult
 
     override suspend fun signUp(displayName: String, email: String, password: String): Resource<AuthUser> = signUpResult
+
+    override suspend fun signInWithGoogle(idToken: String): Resource<AuthUser> = googleSignInResult
 
     override suspend fun sendPasswordResetEmail(email: String): Resource<Unit> = resetResult
 

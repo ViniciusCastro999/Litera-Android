@@ -7,6 +7,7 @@ import com.litera.app.domain.model.AuthUser
 import com.litera.app.domain.usecase.ObserveCurrentUserUseCase
 import com.litera.app.domain.usecase.SendPasswordResetUseCase
 import com.litera.app.domain.usecase.SignInUseCase
+import com.litera.app.domain.usecase.SignInWithGoogleUseCase
 import com.litera.app.domain.usecase.SignUpUseCase
 import com.litera.app.testutil.MainDispatcherRule
 import io.mockk.coEvery
@@ -29,6 +30,7 @@ class AuthViewModelTest {
     private val observeCurrentUser: ObserveCurrentUserUseCase = mockk()
     private val signInUseCase: SignInUseCase = mockk()
     private val signUpUseCase: SignUpUseCase = mockk()
+    private val signInWithGoogleUseCase: SignInWithGoogleUseCase = mockk()
     private val sendPasswordResetUseCase: SendPasswordResetUseCase = mockk()
     private val analyticsLogger: AnalyticsLogger = mockk(relaxed = true)
 
@@ -39,7 +41,14 @@ class AuthViewModelTest {
     @Before
     fun setUp() {
         every { observeCurrentUser() } returns MutableStateFlow(null)
-        viewModel = AuthViewModel(observeCurrentUser, signInUseCase, signUpUseCase, sendPasswordResetUseCase, analyticsLogger)
+        viewModel = AuthViewModel(
+            observeCurrentUser,
+            signInUseCase,
+            signUpUseCase,
+            signInWithGoogleUseCase,
+            sendPasswordResetUseCase,
+            analyticsLogger
+        )
     }
 
     @Test
@@ -87,6 +96,37 @@ class AuthViewModelTest {
             assertEquals(AuthActionState.Success(user), awaitItem())
         }
         verify(exactly = 1) { analyticsLogger.logSignUp() }
+    }
+
+    @Test
+    fun `signInWithGoogle success updates authState and logs the google method`() = runTest {
+        coEvery { signInWithGoogleUseCase("id-token") } returns Resource.Success(user)
+
+        viewModel.authState.test {
+            awaitItem() // Idle
+
+            viewModel.signInWithGoogle("id-token")
+
+            awaitItem() // Loading
+            assertEquals(AuthActionState.Success(user), awaitItem())
+        }
+        verify(exactly = 1) { analyticsLogger.logLogin(method = "google") }
+    }
+
+    @Test
+    fun `signInWithGoogle failure surfaces the error message`() = runTest {
+        coEvery { signInWithGoogleUseCase(any()) } returns Resource.Error("Não foi possível entrar com o Google. Tente novamente.")
+
+        viewModel.authState.test {
+            awaitItem() // Idle
+
+            viewModel.signInWithGoogle("id-token")
+
+            awaitItem() // Loading
+            val error = awaitItem()
+            assertTrue(error is AuthActionState.Error)
+        }
+        verify(exactly = 0) { analyticsLogger.logLogin(method = "google") }
     }
 
     @Test

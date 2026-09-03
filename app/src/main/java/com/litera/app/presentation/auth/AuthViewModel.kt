@@ -8,6 +8,7 @@ import com.litera.app.domain.model.AuthUser
 import com.litera.app.domain.usecase.ObserveCurrentUserUseCase
 import com.litera.app.domain.usecase.SendPasswordResetUseCase
 import com.litera.app.domain.usecase.SignInUseCase
+import com.litera.app.domain.usecase.SignInWithGoogleUseCase
 import com.litera.app.domain.usecase.SignUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +36,7 @@ class AuthViewModel @Inject constructor(
     observeCurrentUser: ObserveCurrentUserUseCase,
     private val signInUseCase: SignInUseCase,
     private val signUpUseCase: SignUpUseCase,
+    private val signInWithGoogleUseCase: SignInWithGoogleUseCase,
     private val sendPasswordResetUseCase: SendPasswordResetUseCase,
     private val analyticsLogger: AnalyticsLogger
 ) : ViewModel() {
@@ -67,6 +69,20 @@ class AuthViewModel @Inject constructor(
             when (val result = signUpUseCase(displayName, email, password)) {
                 is Resource.Success -> {
                     analyticsLogger.logSignUp()
+                    _authState.value = AuthActionState.Success(result.data)
+                }
+                is Resource.Error -> _authState.value = AuthActionState.Error(result.message)
+                Resource.Loading -> Unit
+            }
+        }
+    }
+
+    fun signInWithGoogle(idToken: String) {
+        _authState.value = AuthActionState.Loading
+        viewModelScope.launch {
+            when (val result = signInWithGoogleUseCase(idToken)) {
+                is Resource.Success -> {
+                    analyticsLogger.logLogin(method = "google")
                     _authState.value = AuthActionState.Success(result.data)
                 }
                 is Resource.Error -> _authState.value = AuthActionState.Error(result.message)

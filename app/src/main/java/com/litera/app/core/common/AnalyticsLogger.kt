@@ -21,15 +21,15 @@ class AnalyticsLogger @Inject constructor(
         })
     }
 
-    fun logLogin() {
+    fun logLogin(method: String = "email") {
         firebaseAnalytics.logEvent(FirebaseAnalytics.Event.LOGIN, Bundle().apply {
-            putString(FirebaseAnalytics.Param.METHOD, "email")
+            putString(FirebaseAnalytics.Param.METHOD, method)
         })
     }
 
-    fun logSignUp() {
+    fun logSignUp(method: String = "email") {
         firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SIGN_UP, Bundle().apply {
-            putString(FirebaseAnalytics.Param.METHOD, "email")
+            putString(FirebaseAnalytics.Param.METHOD, method)
         })
     }
 

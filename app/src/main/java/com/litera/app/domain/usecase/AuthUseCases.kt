@@ -47,6 +47,12 @@ class SignUpUseCase @Inject constructor(
     }
 }
 
+class SignInWithGoogleUseCase @Inject constructor(
+    private val repository: AuthRepository
+) {
+    suspend operator fun invoke(idToken: String): Resource<AuthUser> = repository.signInWithGoogle(idToken)
+}
+
 class SendPasswordResetUseCase @Inject constructor(
     private val repository: AuthRepository
 ) {

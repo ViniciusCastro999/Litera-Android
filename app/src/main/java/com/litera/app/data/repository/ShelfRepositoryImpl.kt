@@ -1,76 +1,136 @@
+@file:OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 package com.litera.app.data.repository
 
-import com.litera.app.data.local.dao.ShelfDao
-import com.litera.app.data.local.entity.ShelfBookEntity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.litera.app.data.remote.currentUserIdFlow
+import com.litera.app.data.remote.safeWrite
+import com.litera.app.data.remote.snapshotsFlow
+import com.litera.app.data.remote.userCollection
 import com.litera.app.domain.model.Book
 import com.litera.app.domain.model.ShelfBook
 import com.litera.app.domain.repository.ShelfRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+private const val COLLECTION = "shelf"
+
+/**
+ * Firestore-backed shelf, under users/{uid}/shelf/{volumeId} — replaces the
+ * old Room table so "Estante" follows the signed-in account across devices
+ * instead of staying on a single phone.
+ *
+ * Writes are best-effort: if Firestore isn't reachable/provisioned yet, the
+ * exception is recorded to Crashlytics and swallowed rather than crashing
+ * the tapped screen (ShelfViewModel's action methods are fire-and-forget,
+ * same as they were with Room, which practically never failed).
+ */
 class ShelfRepositoryImpl @Inject constructor(
-    private val dao: ShelfDao
+    private val firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth
 ) : ShelfRepository {
 
+    private fun shelfCollection(uid: String) = firestore.userCollection(uid, COLLECTION)
+
     override fun observeShelf(): Flow<List<ShelfBook>> =
-        dao.observeAll().map { list -> list.map { it.toDomain() } }
+        auth.currentUserIdFlow().flatMapLatest { uid ->
+            if (uid == null) {
+                flowOf(emptyList())
+            } else {
+                shelfCollection(uid).orderBy("updatedAt", Query.Direction.DESCENDING).snapshotsFlow()
+                    .map { snapshot -> snapshot.documents.mapNotNull { it.toObject(ShelfBookDto::class.java)?.toDomain(it.id) } }
+            }
+        }
 
     override fun observeShelfItem(volumeId: String): Flow<ShelfBook?> =
-        dao.observeById(volumeId).map { it?.toDomain() }
+        auth.currentUserIdFlow().flatMapLatest { uid ->
+            if (uid == null) {
+                flowOf(null)
+            } else {
+                shelfCollection(uid).document(volumeId).snapshotsFlow()
+                    .map { it.toObject(ShelfBookDto::class.java)?.toDomain(it.id) }
+            }
+        }
 
-    override suspend fun toggleFavorite(book: Book) {
-        val existing = dao.getById(book.volumeId)
+    override suspend fun toggleFavorite(book: Book) = safeWrite {
+        val uid = auth.currentUser?.uid ?: return@safeWrite
+        val docRef = shelfCollection(uid).document(book.volumeId)
+        val existing = docRef.get().await().toObject(ShelfBookDto::class.java)
         val now = System.currentTimeMillis()
         if (existing != null) {
-            dao.upsert(existing.copy(isFavorite = !existing.isFavorite, updatedAt = now))
+            docRef.set(existing.copy(isFavorite = !existing.isFavorite, updatedAt = now)).await()
         } else {
-            dao.upsert(book.toNewEntity(now).copy(isFavorite = true))
+            docRef.set(book.toNewDto(now).copy(isFavorite = true)).await()
         }
     }
 
-    override suspend fun startReading(book: Book, totalPages: Int) {
-        val existing = dao.getById(book.volumeId)
+    override suspend fun startReading(book: Book, totalPages: Int) = safeWrite {
+        val uid = auth.currentUser?.uid ?: return@safeWrite
+        val docRef = shelfCollection(uid).document(book.volumeId)
+        val existing = docRef.get().await().toObject(ShelfBookDto::class.java)
         val now = System.currentTimeMillis()
         if (existing != null) {
-            dao.upsert(
+            docRef.set(
                 existing.copy(
                     isRead = false,
                     currentPage = if (existing.currentPage <= 0) 1 else existing.currentPage,
                     totalPages = if (totalPages > 0) totalPages else existing.totalPages,
                     updatedAt = now
                 )
-            )
+            ).await()
         } else {
-            dao.upsert(book.toNewEntity(now).copy(currentPage = 1, totalPages = totalPages))
+            docRef.set(book.toNewDto(now).copy(currentPage = 1, totalPages = totalPages)).await()
         }
     }
 
-    override suspend fun updateProgress(volumeId: String, currentPage: Int, totalPages: Int) {
-        val existing = dao.getById(volumeId) ?: return
+    override suspend fun updateProgress(volumeId: String, currentPage: Int, totalPages: Int) = safeWrite {
+        val uid = auth.currentUser?.uid ?: return@safeWrite
+        val docRef = shelfCollection(uid).document(volumeId)
+        val existing = docRef.get().await().toObject(ShelfBookDto::class.java) ?: return@safeWrite
         val now = System.currentTimeMillis()
         val isNowRead = totalPages > 0 && currentPage >= totalPages
-        dao.upsert(
+        docRef.set(
             existing.copy(
                 currentPage = currentPage.coerceAtLeast(0),
                 totalPages = totalPages.coerceAtLeast(existing.totalPages),
                 isRead = existing.isRead || isNowRead,
                 updatedAt = now
             )
-        )
+        ).await()
     }
 
-    override suspend fun markAsRead(volumeId: String) {
-        val existing = dao.getById(volumeId) ?: return
-        dao.upsert(existing.copy(isRead = true, updatedAt = System.currentTimeMillis()))
+    override suspend fun markAsRead(volumeId: String) = safeWrite {
+        val uid = auth.currentUser?.uid ?: return@safeWrite
+        val docRef = shelfCollection(uid).document(volumeId)
+        val existing = docRef.get().await().toObject(ShelfBookDto::class.java) ?: return@safeWrite
+        docRef.set(existing.copy(isRead = true, updatedAt = System.currentTimeMillis())).await()
     }
 
-    override suspend fun removeFromShelf(volumeId: String) {
-        dao.deleteById(volumeId)
+    override suspend fun removeFromShelf(volumeId: String) = safeWrite {
+        val uid = auth.currentUser?.uid ?: return@safeWrite
+        shelfCollection(uid).document(volumeId).delete().await()
     }
 }
 
-private fun ShelfBookEntity.toDomain() = ShelfBook(
+/** Firestore requires a no-arg constructor for automatic deserialization, hence every field defaults. */
+data class ShelfBookDto(
+    val title: String = "",
+    val authorsLabel: String = "",
+    val thumbnailUrl: String? = null,
+    val isFavorite: Boolean = false,
+    val isRead: Boolean = false,
+    val currentPage: Int = 0,
+    val totalPages: Int = 0,
+    val addedAt: Long = 0L,
+    val updatedAt: Long = 0L
+)
+
+private fun ShelfBookDto.toDomain(volumeId: String) = ShelfBook(
     volumeId = volumeId,
     title = title,
     authorsLabel = authorsLabel,
@@ -83,8 +143,7 @@ private fun ShelfBookEntity.toDomain() = ShelfBook(
     updatedAt = updatedAt
 )
 
-private fun Book.toNewEntity(now: Long) = ShelfBookEntity(
-    volumeId = volumeId,
+private fun Book.toNewDto(now: Long) = ShelfBookDto(
     title = title,
     authorsLabel = authorsLabel,
     thumbnailUrl = thumbnailUrl,

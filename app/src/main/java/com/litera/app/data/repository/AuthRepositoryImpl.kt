@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.litera.app.core.common.Resource
@@ -51,6 +52,15 @@ class AuthRepositoryImpl @Inject constructor(
         )?.awaitResult()
         val user = firebaseUser?.toDomain()?.copy(displayName = displayName)
         if (user != null) Resource.Success(user) else Resource.Error("Não foi possível criar a conta. Tente novamente.")
+    } catch (e: Exception) {
+        Resource.Error(e.toFriendlyMessage(), e)
+    }
+
+    override suspend fun signInWithGoogle(idToken: String): Resource<AuthUser> = try {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        val result = firebaseAuth.signInWithCredential(credential).awaitResult()
+        val user = result.user?.toDomain()
+        if (user != null) Resource.Success(user) else Resource.Error("Não foi possível entrar com o Google. Tente novamente.")
     } catch (e: Exception) {
         Resource.Error(e.toFriendlyMessage(), e)
     }

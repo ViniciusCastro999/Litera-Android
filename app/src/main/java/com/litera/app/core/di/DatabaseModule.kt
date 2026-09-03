@@ -9,11 +9,7 @@ import com.litera.app.data.local.AppDatabase
 import com.litera.app.data.local.SeedData
 import com.litera.app.data.local.dao.ClubDao
 import com.litera.app.data.local.dao.CommentDao
-import com.litera.app.data.local.dao.FocusSessionDao
-import com.litera.app.data.local.dao.NoteDao
 import com.litera.app.data.local.dao.PostDao
-import com.litera.app.data.local.dao.ReadingGoalDao
-import com.litera.app.data.local.dao.ShelfDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,18 +49,6 @@ object DatabaseModule {
                 }
             })
             .build()
-
-    @Provides
-    fun provideShelfDao(database: AppDatabase): ShelfDao = database.shelfDao()
-
-    @Provides
-    fun provideFocusSessionDao(database: AppDatabase): FocusSessionDao = database.focusSessionDao()
-
-    @Provides
-    fun provideReadingGoalDao(database: AppDatabase): ReadingGoalDao = database.readingGoalDao()
-
-    @Provides
-    fun provideNoteDao(database: AppDatabase): NoteDao = database.noteDao()
 
     @Provides
     fun providePostDao(database: AppDatabase): PostDao = database.postDao()

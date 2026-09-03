@@ -13,7 +13,8 @@ Design original **LiteraUX**, criado por **Milla Giulie** no Figma:
 - **Retrofit + kotlinx.serialization** para a Google Books API e para a Wikipedia REST API (biografia de autor)
 - **Room** para tudo que é dado local: Estante, sessões de foco, metas de leitura, anotações e a Comunidade (posts/comentários/clubes)
 - **DataStore Preferences** para categorias favoritas, flags de onboarding/quiz e configurações do Modo foco
-- **Firebase Authentication** para login/cadastro (e-mail e senha)
+- **Firebase Authentication** para login/cadastro (e-mail e senha, e login com Google via Credential Manager)
+- **Firebase Crashlytics + Analytics** para relatório de erros e eventos de uso (login, cadastro, navegação entre telas)
 - **Coil** para carregar capas de livros, com cache em disco e memória configurado (`LiteraApplication`) — cada capa só é baixada uma vez
 
 ## Screenshots
@@ -44,7 +45,16 @@ Design original **LiteraUX**, criado por **Milla Giulie** no Figma:
 
 Sem chave, o app funciona, só que com uma cota compartilhada mais baixa (pode retornar erro 503 em uso intenso).
 
-### 3. Abrir no Android Studio
+### 3. Login com Google (opcional)
+
+1. No console do Firebase, em **Authentication → Sign-in method**, ative o provedor **Google**.
+2. Isso gera automaticamente um cliente OAuth "Web". Copie o **Web client ID** que aparece na configuração do provedor (também dá pra achar no Google Cloud Console em **APIs e serviços → Credenciais**, em "IDs do cliente OAuth 2.0" → tipo "Aplicativo da Web").
+3. Preencha `googleWebClientId=SEU_WEB_CLIENT_ID` em `local.properties`.
+4. Para rodar num emulador/dispositivo, o Firebase também precisa da impressão digital SHA-1 do seu certificado de debug: rode `./gradlew signingReport`, copie o SHA-1 do variant `debug` e adicione ao app Android no console do Firebase (⚙️ Configurações do projeto → seus apps → "Adicionar impressão digital"). Depois baixe o `google-services.json` atualizado.
+
+Sem o `googleWebClientId` configurado, o botão "Continuar com Google" simplesmente não aparece nas telas de Login/Criar conta — o app funciona normalmente só com e-mail/senha.
+
+### 4. Abrir no Android Studio
 
 Abra a pasta `LiteraApp` no Android Studio (Koala ou mais recente) e deixe o Gradle sincronizar — o wrapper (`gradle-wrapper.jar`, Gradle 8.9) já está incluído no repositório.
 

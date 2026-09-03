@@ -14,6 +14,7 @@ import com.litera.app.domain.model.AuthUser
 import com.litera.app.domain.usecase.ObserveCurrentUserUseCase
 import com.litera.app.domain.usecase.SendPasswordResetUseCase
 import com.litera.app.domain.usecase.SignInUseCase
+import com.litera.app.domain.usecase.SignInWithGoogleUseCase
 import com.litera.app.domain.usecase.SignUpUseCase
 import com.litera.app.fakes.FakeAuthRepository
 import org.junit.Rule
@@ -34,6 +35,7 @@ class LoginScreenTest {
         ObserveCurrentUserUseCase(repository),
         SignInUseCase(repository),
         SignUpUseCase(repository),
+        SignInWithGoogleUseCase(repository),
         SendPasswordResetUseCase(repository),
         AnalyticsLogger(FirebaseAnalytics.getInstance(InstrumentationRegistry.getInstrumentation().targetContext))
     )

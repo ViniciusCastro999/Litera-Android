@@ -6,3 +6,9 @@
 # (enable "Books API" on the project first). The app works without it too,
 # just at a lower, shared quota.
 booksApiKey=
+
+# Optional: OAuth Web Client ID for "Continuar com Google" (login/cadastro).
+# Get it from the Firebase Console: Authentication -> Sign-in method ->
+# Google -> enable it -> "Web SDK configuration" shows the Web client ID.
+# See README.md "Login com Google". Without it, the Google button is hidden.
+googleWebClientId=

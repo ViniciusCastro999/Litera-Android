@@ -29,6 +29,11 @@ val localProperties = Properties().apply {
 }
 val booksApiKey: String = localProperties.getProperty("booksApiKey", "")
 
+// Optional local.properties key: googleWebClientId=YOUR_OAUTH_WEB_CLIENT_ID
+// The "Sign in with Google" button is hidden at runtime when this is blank.
+// See README.md "Login com Google" for how to get this value.
+val googleWebClientId: String = localProperties.getProperty("googleWebClientId", "")
+
 android {
     namespace = "com.litera.app"
     compileSdk = 35
@@ -42,6 +47,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BOOKS_API_KEY", "\"$booksApiKey\"")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
     }
 
     buildTypes {
@@ -117,8 +123,11 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.crashlytics.ktx)
     implementation(libs.firebase.analytics.ktx)
+    implementation(libs.firebase.firestore.ktx)
 
-    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.google.id)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
