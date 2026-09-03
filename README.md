@@ -28,7 +28,7 @@ Design original **LiteraUX**, criado por **Milla Giulie** no Figma:
 
 ## Configuração antes de rodar
 
-### 1. Firebase (obrigatório para login funcionar)
+### 1. Firebase
 
 1. Crie um projeto gratuito em https://console.firebase.google.com
 2. Adicione um app Android com o pacote `com.litera.app`.
@@ -36,7 +36,7 @@ Design original **LiteraUX**, criado por **Milla Giulie** no Figma:
 4. No console do Firebase, em **Authentication → Sign-in method**, ative o provedor **E-mail/senha**.
 5. Sem esse arquivo o projeto builda normalmente (o plugin do Google Services só é aplicado se ele existir), mas o app quebra ao abrir — a checagem de sessão de login roda logo na tela inicial.
 
-### 2. Chave da Google Books API (opcional, recomendado)
+### 2. Chave da Google Books API
 
 1. Copie `local.properties.example` para `local.properties`.
 2. Gere uma chave gratuita em https://console.cloud.google.com/apis/credentials (ative a "Books API" no projeto antes).
@@ -51,7 +51,7 @@ Abra a pasta `LiteraApp` no Android Studio (Koala ou mais recente) e deixe o Gra
 ## O que foi implementado
 
 ### Fluxo principal
-- **Onboarding** — 4 telas com ilustrações e cópia exatas do Figma, "Pular"
+- **Onboarding** — 4 telas com ilustrações, "Pular"
 - **Login, Criar conta e Esqueci minha senha** — Firebase Auth, campos em pill preenchido, toggle mostrar/ocultar senha
 - **Quiz de preferências** — categorias favoritas, mínimo 3
 - **Home** — banner com citação, "Continuar sua última leitura", destaques nacionais e recomendados (baseado nas categorias escolhidas)
@@ -60,7 +60,7 @@ Abra a pasta `LiteraApp` no Android Studio (Koala ou mais recente) e deixe o Gra
 - **Minha Estante** — Continue lendo (com progresso e atualização de página), Favoritos, Lidos
 - **Perfil** — cabeçalho com avatar/stats (lidos, lendo, favoritos), card de meta de leitura em destaque, categorias favoritas, atalhos, sair da conta
 
-### Ferramentas de leitura (novo, 100% local — Room/DataStore)
+### Ferramentas de leitura
 - **Ritmo de leitura** — cronômetro de 1 minuto → informa página inicial/final → calcula páginas/hora e estimativa de dias para terminar o livro
 - **Modo foco** (Pomodoro) — tela de intro, sessão com cronômetro regressivo e pausa, configurações (duração, notificações, estatísticas de tempo total/XP)
 - **Metas de leitura** — criar/editar metas (páginas por semana, livros por mês, livros nacionais) com acompanhamento de progresso
