@@ -16,6 +16,16 @@ Design original **LiteraUX**, criado por **Milla Giulie** no Figma:
 - **Firebase Authentication** para login/cadastro (e-mail e senha)
 - **Coil** para carregar capas de livros, com cache em disco e memória configurado (`LiteraApplication`) — cada capa só é baixada uma vez
 
+## Screenshots
+
+<img width="300" height="652" alt="image" src="https://github.com/user-attachments/assets/6147238f-8df0-4cd8-8b2a-19c8c1b02af1" />
+<img width="300" height="652" alt="image" src="https://github.com/user-attachments/assets/80a31f19-098e-447e-a9a0-fb2190eecf2f" />
+<img width="300" height="652" alt="image" src="https://github.com/user-attachments/assets/46312cc8-fe1e-49db-96b7-da36ca724024" />
+<img width="300" height="652" alt="image" src="https://github.com/user-attachments/assets/53fa2808-9d7d-4e30-ad61-a54ee60898ce" />
+<img width="300" height="652" alt="image" src="https://github.com/user-attachments/assets/813f71e7-1e81-409d-869f-9170ea031f68" />
+<img width="300" height="652" alt="image" src="https://github.com/user-attachments/assets/39ad5cb2-a494-4aef-9594-2cfca165b64c" />
+<img width="300" height="652" alt="image" src="https://github.com/user-attachments/assets/1c00f388-8d5f-4cf6-a369-474e9b155758" />
+
 ## Configuração antes de rodar
 
 ### 1. Firebase (obrigatório para login funcionar)
