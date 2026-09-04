@@ -76,6 +76,24 @@ fun HomeScreen(
                 if (uiState.recommended.isNotEmpty()) {
                     SectionTitle("Selecionados para você")
                     BookRail(uiState.recommended, onBookClick)
+                    Spacer(Modifier.height(16.dp))
+                }
+
+                if (uiState.brazilianNovels.isNotEmpty()) {
+                    SectionTitle("Romances nacionais")
+                    BookRail(uiState.brazilianNovels, onBookClick)
+                    Spacer(Modifier.height(16.dp))
+                }
+
+                if (uiState.brazilianShortStories.isNotEmpty()) {
+                    SectionTitle("Contos nacionais")
+                    BookRail(uiState.brazilianShortStories, onBookClick)
+                    Spacer(Modifier.height(16.dp))
+                }
+
+                if (uiState.brazilianPoetry.isNotEmpty()) {
+                    SectionTitle("Poesia nacional")
+                    BookRail(uiState.brazilianPoetry, onBookClick)
                     Spacer(Modifier.height(24.dp))
                 }
             }
