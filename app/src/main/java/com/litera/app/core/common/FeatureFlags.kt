@@ -14,7 +14,7 @@ object FeatureFlags {
      * from the bottom bar until it's backed by something real (Firestore
      * or similar).
      */
-    const val COMMUNITY_ENABLED = true
+    const val COMMUNITY_ENABLED = false
 
     /**
      * "Escanear texto" / "Capturar página" on the Anotações screen — OCR

@@ -18,3 +18,14 @@
 
 # Room
 -keep class * extends androidx.room.RoomDatabase
+
+# Firestore's automatic POJO mapping (toObject()/set(dto)) reads and writes
+# fields by name via reflection — without this, R8 renames/strips the
+# fields on our own Dto classes (data/repository/*Impl.kt) and every
+# read/write silently returns nulls/defaults instead of crashing, which is
+# much harder to notice than a crash.
+-keepclassmembers class com.litera.app.data.repository.*Dto {
+    <fields>;
+    <init>(...);
+}
+-keep class com.litera.app.data.repository.*Dto { *; }

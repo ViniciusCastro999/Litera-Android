@@ -41,15 +41,24 @@ val googleWebClientId: String = localProperties.getProperty("googleWebClientId",
 val admobAppId: String = localProperties.getProperty("admobAppId", "ca-app-pub-3940256099942544~3347511713")
 val admobBannerAdUnitId: String = localProperties.getProperty("admobBannerAdUnitId", "ca-app-pub-3940256099942544/6300978111")
 
+// Play Store upload key. See README.md "Assinatura de release" — without
+// this configured, release builds fall back to the debug key (fine for
+// local testing, rejected by the Play Store).
+val releaseStoreFile: String = localProperties.getProperty("releaseStoreFile", "")
+val releaseStorePassword: String = localProperties.getProperty("releaseStorePassword", "")
+val releaseKeyAlias: String = localProperties.getProperty("releaseKeyAlias", "")
+val releaseKeyPassword: String = localProperties.getProperty("releaseKeyPassword", "")
+val hasReleaseSigning = releaseStoreFile.isNotBlank() && rootProject.file(releaseStoreFile).exists()
+
 android {
     namespace = "com.litera.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.litera.app"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 1
+        targetSdk = 36
+        versionCode = 3
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -62,6 +71,17 @@ android {
         manifestPlaceholders["admobAppId"] = admobAppId
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = rootProject.file(releaseStoreFile)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -69,6 +89,15 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Real upload key when local.properties has one configured;
+            // falls back to the debug key so the project still builds (and
+            // can be installed locally) before that's set up. An app signed
+            // with the debug key is rejected by the Play Store.
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
         debug {
             isMinifyEnabled = false
