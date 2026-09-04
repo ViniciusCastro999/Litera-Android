@@ -296,7 +296,6 @@ fun LiteraNavGraph(
                 }
             }
 
-            // Community (local-only, single-device — see plan notes).
             composable(Screen.Community.route) {
                 CommunityScreen(
                     onComposePost = { navController.navigate(Screen.PostComposer.route) },

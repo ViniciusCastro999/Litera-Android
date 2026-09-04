@@ -50,7 +50,7 @@ val LiteraTypography = Typography(
         fontSize = 24.sp,
         lineHeight = 30.sp
     ),
-    headlineSmall = TextStyle( // 20
+    headlineSmall = TextStyle(
         fontFamily = RalewaySemiBold,
         fontWeight = FontWeight.SemiBold,
         fontSize = 20.sp,
@@ -62,19 +62,19 @@ val LiteraTypography = Typography(
         fontSize = 20.sp,
         lineHeight = 26.sp
     ),
-    titleMedium = TextStyle( // 18
+    titleMedium = TextStyle(
         fontFamily = RalewaySemiBold,
         fontWeight = FontWeight.SemiBold,
         fontSize = 18.sp,
         lineHeight = 24.sp
     ),
-    bodyLarge = TextStyle( // 16
+    bodyLarge = TextStyle(
         fontFamily = RalewayRegular,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp
     ),
-    bodyMedium = TextStyle( // 14
+    bodyMedium = TextStyle(
         fontFamily = RalewayRegular,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,

@@ -63,7 +63,7 @@ class ExploreViewModel @Inject constructor(
             return
         }
         searchJob = viewModelScope.launch {
-            delay(400) // debounce
+            delay(400)
             _uiState.update { it.copy(isSearching = true, errorMessage = null) }
             when (val result = searchBooksUseCase(query)) {
                 is Resource.Success -> _uiState.update {

@@ -51,7 +51,6 @@ sealed class Screen(val route: String) {
     data object ReadingPaceCalculate : Screen("reading_pace_calculate")
     data object ReadingPaceResult : Screen("reading_pace_result")
 
-    // Focus mode (Pomodoro-style "Modo foco").
     data object FocusIntro : Screen("focus_intro")
     data object FocusSession : Screen("focus_session")
     data object FocusSettings : Screen("focus_settings")

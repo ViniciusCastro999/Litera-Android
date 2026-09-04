@@ -26,12 +26,10 @@ class BookRepositoryImpl @Inject constructor(
 
     override suspend fun searchBooks(query: String): Resource<List<Book>> = safeCall {
         api.searchVolumes(
-            // Plain "q=<text>" ranks poorly on the Google Books API — a search
-            // like "harry" surfaces obscure results (legal documents,
-            // unrelated books mentioning "Harry") ahead of Harry Potter.
-            // Restricting to intitle: matches how people actually use a
-            // book search box (typing a title) and ranks the well-known
-            // book first; see also inauthor: in getBooksByAuthor below.
+            // Plain "q=<text>" ranks poorly on the Google Books API,
+            // surfacing tangential matches ahead of well-known titles.
+            // intitle: matches how a book search box is actually used and
+            // ranks title matches first; see also inauthor: below.
             query = "intitle:\"$query\"",
             langRestrict = Constants.BOOKS_LANGUAGE_RESTRICT,
             country = Constants.BOOKS_COUNTRY,

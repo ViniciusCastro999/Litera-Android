@@ -138,9 +138,6 @@ fun OnboardingScreen(
 
                 Spacer(Modifier.height(24.dp))
 
-                // Real illustration exported from the LiteraUX Figma file,
-                // placed directly on the page background (no card/frame
-                // around it, matching the Figma mockup exactly).
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -194,7 +191,6 @@ fun OnboardingScreen(
                 .padding(PaddingValues(start = 24.dp, end = 24.dp, bottom = 32.dp)),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Figma only shows a back button once there's somewhere to go back to.
             if (pagerState.currentPage > 0) {
                 FilledIconButton(
                     onClick = {

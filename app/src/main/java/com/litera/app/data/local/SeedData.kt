@@ -6,8 +6,7 @@ import com.litera.app.data.local.entity.PostEntity
 /**
  * Fixture content matching the LiteraUX Figma "Amigos"/"Clubes literários"
  * mockups, inserted once when the local database is first created so the
- * community feed isn't empty on a fresh install (community is local-only —
- * see the plan notes on why there's no real multi-user backend here).
+ * community feed isn't empty on a fresh install.
  */
 object SeedData {
 
