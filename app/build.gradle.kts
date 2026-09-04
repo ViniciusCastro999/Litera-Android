@@ -58,8 +58,8 @@ android {
         applicationId = "com.litera.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.0"
+        versionCode = 5
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BOOKS_API_KEY", "\"$booksApiKey\"")
